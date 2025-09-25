@@ -1,4 +1,4 @@
-name: Laravel CI
+name: laravel-tests
 
 on: [push, pull_request]
 
@@ -6,15 +6,30 @@ jobs:
   laravel-tests:
     runs-on: ubuntu-latest
 
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: yes
+          MYSQL_DATABASE: mvc_mesa
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
     steps:
-      - name: Checkout código
+      - name: Set up job
         uses: actions/checkout@v3
 
       - name: Configurar PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.1'
-          extensions: mbstring, bcmath, intl, sqlite
+          php-version: '8.2'
+          extensions: mbstring, pdo, mysql, dom, fileinfo
+          coverage: none
 
       - name: Instalar dependencias
         run: composer install --no-progress --prefer-dist --optimize-autoloader
@@ -25,10 +40,16 @@ jobs:
       - name: Generar APP_KEY
         run: php artisan key:generate
 
-      - name: Preparar base de datos SQLite
+      - name: Esperar MySQL
         run: |
-          touch database/database.sqlite
-          php artisan migrate --force --database=sqlite
+          sudo apt-get install -y mysql-client
+          until mysql -h127.0.0.1 -uroot -e "SELECT 1"; do
+            echo "Esperando a MySQL..."
+            sleep 5
+          done
+
+      - name: Migrar base de datos
+        run: php artisan migrate --force
 
       - name: Ejecutar pruebas
         run: php artisan test
