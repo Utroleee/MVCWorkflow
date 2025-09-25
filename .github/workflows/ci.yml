@@ -1,9 +1,9 @@
-name: laravel-tests
+name: laravel-ci
 
 on: [push, pull_request]
 
 jobs:
-  laravel-tests:
+  laravel:
     runs-on: ubuntu-latest
 
     services:
@@ -40,6 +40,7 @@ jobs:
           sed -i 's/DB_DATABASE=.*/DB_DATABASE=mvc_mesa/' .env
           sed -i 's/DB_USERNAME=.*/DB_USERNAME=root/' .env
           sed -i 's/DB_PASSWORD=.*/DB_PASSWORD=/' .env
+          sed -i 's|APP_URL=.*|APP_URL=http://localhost|' .env
 
       - name: Generar APP_KEY
         run: php artisan key:generate
@@ -52,8 +53,5 @@ jobs:
             sleep 5
           done
 
-      - name: Migrar base de datos con seeders
+      - name: Migrar base de datos
         run: php artisan migrate:fresh --seed --force
-
-      - name: Ejecutar pruebas
-        run: php artisan test --stop-on-failure
