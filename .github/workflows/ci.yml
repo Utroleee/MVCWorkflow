@@ -52,10 +52,8 @@ jobs:
             sleep 5
           done
 
-      - name: Preparar migraciones (incluyendo sesiones)
-        run: |
-          php artisan session:table
-          php artisan migrate:fresh --seed --force
+      - name: Migrar base de datos con seeders
+        run: php artisan migrate:fresh --seed --force
 
       - name: Ejecutar pruebas
         run: php artisan test --stop-on-failure
