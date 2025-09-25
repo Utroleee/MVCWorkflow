@@ -21,7 +21,7 @@ jobs:
           --health-retries=3
 
     steps:
-      - name: Set up job
+      - name: Checkout código
         uses: actions/checkout@v3
 
       - name: Configurar PHP
@@ -48,8 +48,8 @@ jobs:
             sleep 5
           done
 
-      - name: Migrar base de datos
-        run: php artisan migrate --force
+      - name: Migrar base de datos con seeders
+        run: php artisan migrate:fresh --seed --force
 
       - name: Ejecutar pruebas
-        run: php artisan test
+        run: php artisan test --testsuite=Feature --stop-on-failure
